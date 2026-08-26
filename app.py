@@ -1,47 +1,40 @@
 import streamlit as st
+import pandas as pd
 import json
 import os
-import pandas as pd
 import plotly.express as px
-from datetime import date
 
-st.set_page_config(page_title="Internship Tracker Pro", layout="wide")
+st.set_page_config(page_title="internship tracker pro",layout="wide")
+
+# ---- GOOGLE LOGIN ----
+if not st.user.is_logged_in:
+    st.title("Internship Tracker PRO ")
+    st.subheader("Google tho login avvu Chintu!")
+    if st.button("Continue with Google"):
+        st.login("google")
+    st.stop()
+
+# ---- LOGIN AYYAKA ----
+st.sidebar.success(f"Hi {st.user.name}! ")
+st.sidebar.write(st.user.email)
+if st.sidebar.button("Logout"):
+    st.logout()
+
+st.title(f"Welcome {st.user.name}! ")
+st.write("Nee internships ikkada track cheddam!")
+
+
+
+st.set_page_config(page_title="Internship Tracker PRO", layout="wide")
 
 st.markdown("""
 <style>
-.stApp {
-    background-image: linear-gradient(rgba(255, 255, 255, 0.90), rgba(255, 255, 255, 0.90)), url("https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80");
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-}
-div[data-testid="stMetric"], div[data-testid="stForm"], div[data-testid="stDataFrame"] {
-    background-color: rgba(255, 255, 255, 0.96) !important;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-}
-.google-watermark {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    opacity: 0.08;
-    z-index: 0;
-    width: 180px;
-}
+.stApp { background-color: #f8fafc; }
 </style>
-<div class="google-watermark">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" width="180">
-</div>
 """, unsafe_allow_html=True)
 
-col1, col2 = st.columns([1, 5])
-with col1:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg", width=110)
-with col2:
-    st.title("My Internship Tracker - PRO")
-
-st.write("Track your internships with Google Secure Login")
-st.divider()
+st.title(" Internship Tracker PRO")
+st.write("Google + Office Design")
 
 DATA_FILE = "data.json"
 
@@ -49,66 +42,45 @@ def load_data():
     if os.path.exists(DATA_FILE):
         try:
             with open(DATA_FILE, "r") as f:
-                return json.load(f)
+                data = json.load(f)
+                if data:
+                    return pd.DataFrame(data)
         except:
-            return []
-    return []
+            pass
+    return pd.DataFrame(columns=["Company", "Role", "Status", "Date"])
 
-def save_data(data):
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f, indent=4)
+def save_data(df):
+    df.to_json(DATA_FILE, orient="records", indent=2)
 
-data = load_data()
+df = load_data()
 
-with st.sidebar:
-    st.header("Add New")
-    with st.form("add_form"):
-        company = st.text_input("Company Name")
-        role = st.text_input("Role / Position")
-        status = st.selectbox("Status", ["applied", "interview", "offer", "rejected"])
-        applied_date = st.date_input("Applied Date", value=date.today())
-        link = st.text_input("Job Link")
-        notes = st.text_area("Notes")
-        submitted = st.form_submit_button("Add Application")
-        if submitted:
-            if company:
-                new_entry = {
-                    "company": company,
-                    "role": role,
-                    "status": status,
-                    "date": str(applied_date),
-                    "link": link,
-                    "notes": notes
-                }
-                data.append(new_entry)
-                save_data(data)
-                st.success(f"{company} added!")
-                st.rerun()
-            else:
-                st.error("Company Name required!")
+with st.form("add_form"):
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        company = st.text_input("Company")
+    with col2:
+        role = st.text_input("Role")
+    with col3:
+        status = st.selectbox("Status", ["Applied", "Interview", "Offer", "Rejected"])
+    submitted = st.form_submit_button("Add Internship")
+    if submitted and company:
+        new_row = {"Company": company, "Role": role, "Status": status, "Date": pd.Timestamp.now().strftime("%Y-%m-%d")}
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+        save_data(df)
+        st.success("Added!")
+        st.rerun()
 
-if len(data) == 0:
-    st.info("No applications yet. Add from sidebar!")
-else:
-    df = pd.DataFrame(data)
-    c1, c2, c3, c4 = st.columns(4)
-    if 'status' in df.columns:
-        c1.metric("Total Applied", len(df))
-        c2.metric("Interviews", len(df[df['status'] == 'interview']))
-        c3.metric("Offers", len(df[df['status'] == 'offer']))
-        c4.metric("Rejected", len(df[df['status'] == 'rejected']))
-    else:
-        c1.metric("Total Applied", len(df))
-
-    st.subheader("Filter")
-    if 'status' in df.columns:
-        status_filter = st.multiselect("Filter by Status", options=df['status'].unique(), default=list(df['status'].unique()))
-        filtered_df = df[df['status'].isin(status_filter)] if status_filter else df
+if not df.empty:
+    status_filter = st.multiselect("Filter by Status", options=df['status'].unique() if 'status' in df.columns else df['Status'].unique(), default=None)
+    if status_filter:
+        filtered_df = df[df['Status'].isin(status_filter)] if 'Status' in df.columns else df
     else:
         filtered_df = df
 
-    st.dataframe(filtered_df, use_container_width=True)
+    st.dataframe(filtered_df, width="stretch")
 
-    if not filtered_df.empty and 'status' in filtered_df.columns:
-        fig = px.pie(filtered_df, names='status', title='Application Statistics')
-        st.plotly_chart(fig, use_container_width=True)
+    if not filtered_df.empty and 'Status' in filtered_df.columns:
+        fig = px.pie(filtered_df, names='Status', title='Application Statistics')
+        st.plotly_chart(fig, width="stretch")
+else:
+    st.info("No internships yet. Add one above!")
