@@ -9,7 +9,7 @@ st.set_page_config(page_title="internship tracker pro",layout="wide")
 # ---- GOOGLE LOGIN ----
 if not st.user.is_logged_in:
     st.title("Internship Tracker PRO ")
-    st.subheader("Google tho login avvu Chintu!")
+    st.write("Google tho login avvu Chintu!")
     if st.button("Continue with Google"):
         st.login("google")
     st.stop()
