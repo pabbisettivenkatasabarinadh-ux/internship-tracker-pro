@@ -1,0 +1,34 @@
+[
+    {
+        "company": "google",
+        "role": "sde intern",
+        "status": "applied",
+        "date": "2026-08-26",
+        "link": "",
+        "notes": ""
+    },
+    {
+        "company": "google",
+        "role": "sdeintern",
+        "status": "applied",
+        "date": "2026-08-26",
+        "link": "",
+        "notes": ""
+    },
+    {
+        "company": "microsoft",
+        "role": "sdeintern",
+        "status": "applied",
+        "date": "2026-08-26",
+        "link": "",
+        "notes": ""
+    },
+    {
+        "company": "amazon",
+        "role": "sdeintern",
+        "status": "applied",
+        "date": "2026-08-26",
+        "link": "",
+        "notes": ""
+    }
+]
