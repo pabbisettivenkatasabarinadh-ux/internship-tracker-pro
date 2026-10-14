@@ -9,7 +9,7 @@ st.set_page_config(page_title="internship tracker pro",layout="wide")
 # ---- GOOGLE LOGIN ----
 if not st.user.is_logged_in:
     st.title("Internship Tracker PRO ")
-    st.write("Google tho login avvu Chintu!")
+    st.write("login with google")
     if st.button("Continue with Google"):
         st.login("google")
     st.stop()
@@ -21,7 +21,7 @@ if st.sidebar.button("Logout"):
     st.logout()
 
 st.title(f"Welcome {st.user.name}! ")
-st.write("Nee internships ikkada track cheddam!")
+st.write("track your internships here")
 
 
 
